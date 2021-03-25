@@ -6,9 +6,19 @@ on:
       - master
 
 jobs: 
-  hello_job:
+  hello_world_job:
     runs-on: ubuntu-18.04
     steps:
       - name: Say hello
         run: |
           echo "Hello World!"
+  date_job:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Print date
+        run: date
+  print_dir_contents_job:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Print current dir contents
+        run: ls -l
