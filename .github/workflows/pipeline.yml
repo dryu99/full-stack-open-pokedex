@@ -36,4 +36,8 @@ jobs:
             heroku_app_name: "fullstackopen-poke-app"
             heroku_email: "rujjiryu99@gmail.com"
             healthcheck: "https://fullstackopen-poke-app.herokuapp.com/health"
+            checkstring: "ok"
+            delay: 5
+            rollbackonhealthcheckfailed: true
+
       
