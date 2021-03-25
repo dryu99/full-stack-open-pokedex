@@ -33,9 +33,10 @@ jobs:
           start: yarn start-prod
           wait-on: http://localhost:5000
       - name: deploy to heroku
+        if: ${{ github.event_name == 'push' }}
         uses: akhileshns/heroku-deploy@v3.12.12
         with:
-            heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+            heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
             heroku_app_name: "fullstackopen-poke-app"
             heroku_email: "rujjiryu99@gmail.com"
             healthcheck: "https://fullstackopen-poke-app.herokuapp.com/health"
