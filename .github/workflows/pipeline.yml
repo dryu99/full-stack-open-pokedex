@@ -9,53 +9,58 @@ on:
       types: [opened, synchronize]
 
 jobs:
-  # simple_deployment_pipeline:
-  #   runs-on: ubuntu-18.04
-  #   steps:
-  #     - name: checkout repo into env
-  #       uses: actions/checkout@v2
-  #     - name: setup node
-  #       uses: actions/setup-node@v1
-  #       with:
-  #         node-version: '12.x'
-  #     - name: install dependencies
-  #       run: yarn
-  #     - name: lint
-  #       run: yarn eslint
-  #     - name: build
-  #       run: yarn build
-  #     - name: test
-  #       run: yarn test
-  #     - name: e2e tests
-  #       uses: cypress-io/github-action@v2
-  #       with:
-  #         command: yarn test:e2e
-  #         start: yarn start-prod
-  #         wait-on: http://localhost:5000
-  #     - name: deploy to heroku
-  #       if: ${{ github.event_name == 'push' && !contains(github.event.commits.*.message, '#skip') }}
-  #       uses: akhileshns/heroku-deploy@v3.12.12
-  #       with:
-  #           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-  #           heroku_app_name: "fullstackopen-poke-app"
-  #           heroku_email: "rujjiryu99@gmail.com"
-  #           healthcheck: "https://fullstackopen-poke-app.herokuapp.com/health"
-  #           checkstring: "ok"
-  #           delay: 5
-  #           rollbackonhealthcheckfailed: true
-  #     - name: checkout repo into env
-  #       if: ${{ github.event_name == 'push' && !contains(github.event.commits.*.message, '#skip') }}
-  #       uses: actions/checkout@v2
-  #     - name: Bump version and push tag
-  #       if: ${{ github.event_name == 'push' && !contains(github.event.commits.*.message, '#skip') }}
-  #       uses: anothrNick/github-tag-action@eca2b69f9e2c24be7decccd0f15fdb1ea5906598
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         DEFAULT_BUMP: patch
-  debug_output:
+  build_test_deploy:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
+      - name: checkout repo into env
+        uses: actions/checkout@v2
+      - name: setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: install dependencies
+        run: yarn
+      - name: lint
+        run: yarn eslint
+      - name: build
+        run: yarn build
+      - name: test
+        run: yarn test
+      - name: e2e tests
+        uses: cypress-io/github-action@v2
+        with:
+          command: yarn test:e2e
+          start: yarn start-prod
+          wait-on: http://localhost:5000
+      - name: deploy to heroku
+        if: ${{ github.event_name == 'push' && !contains(join(join(github.event.commits.*.message)), '#skip') }}
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+            heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+            heroku_app_name: "fullstackopen-poke-app"
+            heroku_email: "rujjiryu99@gmail.com"
+            healthcheck: "https://fullstackopen-poke-app.herokuapp.com/health"
+            checkstring: "ok"
+            delay: 5
+            rollbackonhealthcheckfailed: true
+  tag:
+    runs-on: ubuntu-18.04
+    needs: build_test_deploy
+    if: ${{ github.event_name == 'push' && !contains(join(join(github.event.commits.*.message)), '#skip') }}
+    steps:
+      - name: checkout repo into env
+        uses: actions/checkout@v2
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@eca2b69f9e2c24be7decccd0f15fdb1ea5906598
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+  # nice to have a job just for viewing metadata output in case of errors
+  print_debug_output: 
+    runs-on: ubuntu-18.04
+    steps:
+      - name: checkout repo into env
+        uses: actions/checkout@v2
       - name: gihub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
@@ -68,12 +73,5 @@ jobs:
         env:
           COMMIT_MESSAGES: ${{ toJson(github.event.commits.*.message) }}
         run: echo "$COMMIT_MESSAGES"
-      - name: commit messages joined
-        env:
-          COMMIT_MESSAGES_JOINED: ${{ join(github.event.commits.*.message) }}
-        run: echo "$COMMIT_MESSAGES_JOINED"
-      - name: test contains
-        if: ${{ !contains(join(github.event.commits.*.message), '#skip') }}
-        run: echo "yeehaaeeea"
 
       
